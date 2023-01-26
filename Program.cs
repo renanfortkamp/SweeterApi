@@ -1,3 +1,6 @@
+using Microsoft.EntityFrameworkCore;
+using Sweeter.Context;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -6,6 +9,11 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddDbContext<SweeterContext>(
+    options => options.UseSqlServer(
+        builder.Configuration.GetConnectionString("ServerConnection")));
+
+builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
 var app = builder.Build();
 
