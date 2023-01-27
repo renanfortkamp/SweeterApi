@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Sweeter.Context;
+using Sweeter.Models.Dto;
 using Sweeter.Models.Entities;
 
 namespace Sweeter.Controllers
@@ -76,8 +77,14 @@ namespace Sweeter.Controllers
         // POST: api/Users
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<User>> PostUser(User user)
+        public async Task<ActionResult<UserDto>> PostUser(UserDto userDto)
         {
+            var user = new User
+            {
+                Name = userDto.Name,
+                Email = userDto.Email,
+                Password = userDto.Password
+            };
             _context.users.Add(user);
             await _context.SaveChangesAsync();
 

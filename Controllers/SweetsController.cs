@@ -31,8 +31,15 @@ namespace Sweeter.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Sweet>>> Getsweets()
         {
+            
             var sweet = await _context.sweets.ToListAsync();
             var sweetResponse = _mapper.Map<List<SweetAllDto>>(sweet);
+            foreach (var item in sweetResponse)
+            {
+                var user = await _context.users.Where(u => u.Id == item.UserId).FirstOrDefaultAsync();
+                item.UserName = user.Name;
+            }
+
 
             return Ok(sweetResponse);
         }

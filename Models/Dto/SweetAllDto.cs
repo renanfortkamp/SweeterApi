@@ -13,6 +13,7 @@ namespace Sweeter.Models.Dto
         public int EnumStatus { get; set; }
         public bool Editado { get; set; }
         public int UserId { get; set; }
+        public string UserName { get; set; }
 
     }
 }
