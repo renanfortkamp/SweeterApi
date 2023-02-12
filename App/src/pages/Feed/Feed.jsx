@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, FlatList, Text, Image, TouchableOpacity, StatusBar } from 'react-native';
-import styles from '..//../styles//Style';
+import styles from '../../styles/Style';
 import { useIsFocused } from '@react-navigation/native';
 
 export default function Feed() {
