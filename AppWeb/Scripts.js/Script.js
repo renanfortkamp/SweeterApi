@@ -10,7 +10,7 @@ const corFundo = document.querySelector("#corFundo")
                 "text": conteudo.value
             }
             
-            fetch("https://localhost:7066/api/Sweets?userId="+ id.value,
+            fetch("https://192.168.0.2:7066/api/Sweets?userId="+ id.value,
             {
                 method: 'POST',
                 headers: {
@@ -26,7 +26,7 @@ const corFundo = document.querySelector("#corFundo")
         
 
         function atualizaFront(){
-            fetch("https://localhost:7066/api/Sweets")
+            fetch("https://192.168.0.2:7066/api/Sweets")
             .then(e=>e.json())
             .then(data => {
                 let html = ""
