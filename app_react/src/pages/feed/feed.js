@@ -1,10 +1,11 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState,useEffect,useContext } from 'react';
 import Posts from './Posts.js';
+import Context from '../Context/Context.js';
 
 export default function Feed() {
     const [text, setText] = useState('');
-    const [Id, setId] = useState('');
     const [posts, setPosts] = useState("");
+    const [context] = useContext(Context);
 
     const updatePost = () => {
         setPosts("Atualizando...");
@@ -17,11 +18,12 @@ export default function Feed() {
         updatePost();
     }, []);
 
+    console.log(context.name);
 
     const postMessage = (e) => {
         try {
             e.preventDefault();
-            fetch("http://localhost:5066/api/Sweets?userId="+Id, {
+            fetch("http://localhost:5066/api/Sweets?userId="+context.id, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -43,10 +45,9 @@ export default function Feed() {
     return (
         <div className='posts' style={{display:'flex',justifyContent:"center",alignItems:"center",flexDirection:"column",border:"solid 1px red"}}>
             <h1>Feed</h1>
-            <h2>{Id}</h2>
+            {<p>Bem vindo {context.name}</p>}
             <form onSubmit={(e)=>{postMessage(e)}}>
                 <input type="text" placeholder="text" onChange={(e) => setText(e.target.value)} />
-                <input type="text" placeholder="Id" onChange={(e) => setId(e.target.value)}/>
                 <button type="submit">Submit</button>
             </form>
 
