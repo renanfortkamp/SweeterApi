@@ -20,7 +20,6 @@ namespace Sweeter.Controllers
         private readonly SweeterContext _context;
         private readonly IMapper _mapper;
 
-
         public SweetsController(SweeterContext context, IMapper mapper)
         {
             _context = context;
@@ -28,27 +27,54 @@ namespace Sweeter.Controllers
         }
 
         // GET: api/Sweets
+        // [HttpGet]
+        // public async Task<ActionResult<IEnumerable<Sweet>>> Getsweets()
+        // {
+
+        //     var sweet = await _context.sweets.ToListAsync();
+        //     var sweetResponse = _mapper.Map<List<SweetAllDto>>(sweet);
+        //     foreach (var item in sweetResponse)
+        //     {
+        //         var user = await _context.users.Where(u => u.Id == item.UserId).FirstOrDefaultAsync();
+        //         item.UserName = user.Name;
+        //     }
+
+
+        //     return Ok(sweetResponse);
+        // }
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Sweet>>> Getsweets()
+        public async Task<ActionResult<IEnumerable<SweetAllDto>>> GetSweets(int? numPosts)
         {
-            
-            var sweet = await _context.sweets.ToListAsync();
-            var sweetResponse = _mapper.Map<List<SweetAllDto>>(sweet);
-            foreach (var item in sweetResponse)
+            var sweets = _context.sweets.OrderByDescending(s => s.DataPostagem);
+            if (numPosts.HasValue)
             {
-                var user = await _context.users.Where(u => u.Id == item.UserId).FirstOrDefaultAsync();
-                item.UserName = user.Name;
+                sweets = (IOrderedQueryable<Sweet>)sweets.Take(numPosts.Value);
             }
 
+            var sweetResponse = await sweets
+                .Include(s => s.User)
+                .Select(
+                    s =>
+                        new SweetAllDto
+                        {
+                            Id = s.Id,
+                            Text = s.Text,
+                            DataPostagem = s.DataPostagem.ToString("dd/MM/yyyy HH:mm:ss"),
+                            UserName = s.User.Name
+                        }
+                )
+                .ToListAsync();
 
             return Ok(sweetResponse);
         }
 
         // GET: api/Sweets/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Sweet>> GetSweet(int id,int userId)
+        public async Task<ActionResult<Sweet>> GetSweet(int id, int userId)
         {
-            var sweet = await _context.sweets.Where(u => u.Id == id && u.UserId == userId).FirstOrDefaultAsync();
+            var sweet = await _context.sweets
+                .Where(u => u.Id == id && u.UserId == userId)
+                .FirstOrDefaultAsync();
 
             if (sweet == null)
             {
@@ -59,16 +85,16 @@ namespace Sweeter.Controllers
         }
 
         // PUT: api/Sweets/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutSweet(int id, int userId,[FromBody] Sweet sweet)
+        public async Task<IActionResult> PutSweet(int id, int userId, [FromBody] Sweet sweet)
         {
-
             if (id != sweet.Id || userId != sweet.UserId)
             {
-                return BadRequest("Você tem que passar o id correto");//retirar com atualização da dto
+                return BadRequest("Você tem que passar o id correto"); //retirar com atualização da dto
             }
-            var existSweet = await _context.sweets.FirstOrDefaultAsync(s => s.Id == id && s.UserId == userId);
+            var existSweet = await _context.sweets.FirstOrDefaultAsync(
+                s => s.Id == id && s.UserId == userId
+            );
             if (existSweet == null)
             {
                 return BadRequest("Sweet não encontrado");
@@ -96,24 +122,23 @@ namespace Sweeter.Controllers
         }
 
         // POST: api/Sweets
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<SweetDto>> PostSweet(int userId, SweetDto sweetDto )
+        public async Task<ActionResult<SweetDto>> PostSweet(int userId, SweetDto sweetDto)
         {
-            var existUser =  await _context.users.FirstOrDefaultAsync(s => s.Id == userId);
+            var existUser = await _context.users.FirstOrDefaultAsync(s => s.Id == userId);
             if (existUser == null)
             {
                 return BadRequest("Usuario não encontrado");
             }
 
-                Sweet sweet = new();
-                sweet.Text = sweetDto.Text;                
-                sweet.UserId = userId;
-                _context.sweets.Add(sweet);
-                await _context.SaveChangesAsync();
+            Sweet sweet = new();
+            sweet.Text = sweetDto.Text;
+            sweet.UserId = userId;
+            _context.sweets.Add(sweet);
+            await _context.SaveChangesAsync();
 
-                return CreatedAtAction("GetSweet", new { id = sweet.Id }, sweet);
-            }
+            return CreatedAtAction("GetSweet", new { id = sweet.Id }, sweet);
+        }
 
         // DELETE: api/Sweets/5
         [HttpDelete("{id}")]
