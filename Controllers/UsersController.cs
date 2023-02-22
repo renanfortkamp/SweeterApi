@@ -22,94 +22,58 @@ namespace Sweeter.Controllers
             _context = context;
         }
 
-        // GET: api/Users
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<User>>> Getusers()
+        // GET: api/Users?email={email}&password={password}
+        [HttpGet("{email}&{password}")]
+        public async Task<ActionResult<User>> GetUser(string email, string password)
         {
-            return await _context.users.ToListAsync();
-        }
-
-        // GET: api/Users/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<User>> GetUser(int id)
-        {
-            var user = await _context.users.FindAsync(id);
-
-            if (user == null)
-            {
-                return NotFound();
-            }
-
-            return user;
-        }
-
-        // PUT: api/Users/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(int id, User user)
-        {
-            if (id != user.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(user).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!UserExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+                var user = await _context.users
+                    .Where(u => u.Email == email && u.Password == password)
+                    .FirstOrDefaultAsync();
 
-            return NoContent();
+                if (user == null)
+                {
+                    return NotFound("Usuário não localizado");
+                }
+
+                return user;
+            }
+            catch
+            {
+                return StatusCode(500, "Erro interno do servidor");
+            }
         }
 
         // POST: api/Users
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public async Task<ActionResult<UserDto>> PostUser(UserDto userDto)
         {
-            var user = new User
+            try
             {
-                Name = userDto.Name,
-                Email = userDto.Email,
-                Password = userDto.Password
-            };
-            _context.users.Add(user);
-            await _context.SaveChangesAsync();
+                var userExist = await _context.users
+                    .Where(u => u.Email == userDto.Email)
+                    .FirstOrDefaultAsync();
+                if (userExist != null)
+                {
+                    return BadRequest("Email já cadastrado");
+                }
 
-            return CreatedAtAction("GetUser", new { id = user.Id }, user);
-        }
+                var user = new User
+                {
+                    Name = userDto.Name,
+                    Email = userDto.Email,
+                    Password = userDto.Password
+                };
+                _context.users.Add(user);
+                await _context.SaveChangesAsync();
 
-        // DELETE: api/Users/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUser(int id)
-        {
-            var user = await _context.users.FindAsync(id);
-            if (user == null)
-            {
-                return NotFound();
+                return Ok(user);
             }
-
-            _context.users.Remove(user);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool UserExists(int id)
-        {
-            return _context.users.Any(e => e.Id == id);
+            catch
+            {
+                return StatusCode(500, "Erro interno do servidor");
+            }
         }
     }
 }
